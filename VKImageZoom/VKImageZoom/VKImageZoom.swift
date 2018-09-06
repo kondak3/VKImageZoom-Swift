@@ -152,7 +152,7 @@ extension VKImageZoom {
         else if image_url != nil {  // image loading with url...
             
             // create indicator...
-            let indicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+            let indicator = UIActivityIndicatorView(activityIndicatorStyle: .white)
             indicator.center = self.view.center
             indicator.startAnimating()
             self.view.addSubview(indicator)

@@ -107,8 +107,8 @@
 			children = (
 				9DFBE84F214134C3003EE815 /* AppDelegate.swift */,
 				9DFBE851214134C3003EE815 /* ViewController.swift */,
-				9DFBE87F2141352C003EE815 /* Images */,
 				9DFBE87D2141352C003EE815 /* VKImageZoom */,
+				9DFBE87F2141352C003EE815 /* Images */,
 				9DFBE853214134C3003EE815 /* Main.storyboard */,
 				9DFBE856214134CA003EE815 /* Assets.xcassets */,
 				9DFBE858214134CA003EE815 /* LaunchScreen.storyboard */,
