@@ -22,7 +22,10 @@ class VKImageZoom: UIViewController {
     private var img_scroll: UIScrollView?
     // imageview for image...
     private var zoom_imgView: UIImageView?
-    
+    // dismiss button...
+    private var cancel_btn: UIButton?
+    // indicator...
+    private var act_indicator: UIActivityIndicatorView?
     
     // MARK:-
     override func viewDidLoad() {
@@ -32,6 +35,10 @@ class VKImageZoom: UIViewController {
         // add components...
         self.view.backgroundColor = UIColor.black
         addView_components()
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(deviceOrientationDidChange(notification:)),
+                                               name: .UIDeviceOrientationDidChange,
+                                               object: nil)
     }
 
     override func didReceiveMemoryWarning() {
@@ -40,14 +47,22 @@ class VKImageZoom: UIViewController {
     }
     
     // MARK:-
-    func addView_components() -> Void {
+    @objc private func deviceOrientationDidChange(notification: Notification) {
+        addView_components()
+    }
+    
+    private func addView_components() -> Void {
         
         img_width = self.view.frame.size.width
         img_height = self.view.frame.size.height
+        let status_height = UIApplication.shared.statusBarFrame.height
         
         // create scroll view...
+        if img_scroll != nil {
+            img_scroll?.removeFromSuperview()
+        }
         img_scroll = UIScrollView()
-        img_scroll?.frame = CGRect.init(x: 0, y: 20, width: img_width, height: img_height-40)
+        img_scroll?.frame = CGRect.init(x: 0, y: status_height, width: img_width, height: (img_height-2*status_height))
         img_scroll?.backgroundColor = UIColor.clear
         img_scroll?.bouncesZoom = true
         img_scroll?.delegate = self
@@ -61,24 +76,36 @@ class VKImageZoom: UIViewController {
         zoom_imgView = UIImageView()
         zoom_imgView?.isUserInteractionEnabled = true
         zoom_imgView?.backgroundColor = UIColor.clear
-        zoom_imgView?.frame = CGRect.init(x: 0, y: 20, width: img_width, height: img_height-40)
+        zoom_imgView?.frame = CGRect.init(x: 0, y: status_height, width: img_width, height: (img_height-2*status_height))
         zoom_imgView?.center = (img_scroll?.center)!
         img_scroll?.addSubview(zoom_imgView!)
         
         // create cancel button...
-        let cancel_btn = UIButton(type: .custom)
-        cancel_btn.frame = CGRect.init(x: img_width-36, y: 26, width: 30, height: 30)
-        cancel_btn.backgroundColor = UIColor.clear
-        cancel_btn.setTitle("X", for: .normal)
-        cancel_btn.titleLabel?.font = UIFont.systemFont(ofSize: 15.0)
-        cancel_btn.setTitleColor(UIColor.white, for: .normal)
-        cancel_btn.addTarget(self, action:#selector(cancelButtonClicked(button:)), for: .touchUpInside)
-        self.view.addSubview(cancel_btn)
+        if cancel_btn != nil {
+            cancel_btn?.removeFromSuperview()
+        }
+        cancel_btn = UIButton(type: .custom)
+        cancel_btn?.frame = CGRect.init(x: (img_width-36), y: (status_height+6), width: 30, height: 30)
+        cancel_btn?.backgroundColor = UIColor.clear
+        cancel_btn?.setTitle("X", for: .normal)
+        cancel_btn?.titleLabel?.font = UIFont.systemFont(ofSize: 15.0)
+        cancel_btn?.setTitleColor(UIColor.white, for: .normal)
+        cancel_btn?.addTarget(self, action:#selector(cancelButtonClicked(button:)), for: .touchUpInside)
+        self.view.addSubview(cancel_btn!)
         
         // corner radius...
-        cancel_btn.layer.cornerRadius = 30/2
-        cancel_btn.layer.borderWidth = 2.0
-        cancel_btn.layer.borderColor = UIColor.white.cgColor
+        cancel_btn?.layer.cornerRadius = 30/2
+        cancel_btn?.layer.borderWidth = 2.0
+        cancel_btn?.layer.borderColor = UIColor.white.cgColor
+        
+        // create indicator...
+        if act_indicator != nil {
+            act_indicator?.removeFromSuperview()
+        }
+        act_indicator = UIActivityIndicatorView(activityIndicatorStyle: .white)
+        act_indicator?.center = self.view.center
+        act_indicator?.stopAnimating()
+        self.view.addSubview(act_indicator!)
         
         // loading images...
         loadingImages()
@@ -93,11 +120,11 @@ class VKImageZoom: UIViewController {
         img_scroll?.decelerationRate = UIScrollViewDecelerationRateFast
     }
     
-    @objc func cancelButtonClicked(button: UIButton) {
+    @objc private func cancelButtonClicked(button: UIButton) {
         self.dismiss(animated: true, completion: nil)
     }
     
-    @objc func handleDoubleTap(gestureRecognizer: UIGestureRecognizer) {
+    @objc private func handleDoubleTap(gestureRecognizer: UIGestureRecognizer) {
         
         let loImgView = gestureRecognizer.view as! UIImageView
         let loZoomView = loImgView.superview as! UIScrollView
@@ -151,19 +178,14 @@ extension VKImageZoom {
         }
         else if image_url != nil {  // image loading with url...
             
-            // create indicator...
-            let indicator = UIActivityIndicatorView(activityIndicatorStyle: .white)
-            indicator.center = self.view.center
-            indicator.startAnimating()
-            self.view.addSubview(indicator)
-            
             // downloading images...
+            act_indicator?.startAnimating()
             let session = URLSession.shared.dataTask(with: image_url!)
             { (data, response, error) in
                 
                 // if its error occuring...
                 DispatchQueue.main.async {
-                    indicator.stopAnimating()
+                    self.act_indicator?.stopAnimating()
                 }
                 if error != nil {
                     print(error!)
