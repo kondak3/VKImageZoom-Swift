@@ -18,6 +18,7 @@ zoomCtrl.image = UIImage.init(named: "your image name")
 self.present(zoomCtrl, animated: true, completion: nil)
 ```
 
+
 ```
 // if you have image url use this below one...
 let zoomCtrl = VKImageZoom()
